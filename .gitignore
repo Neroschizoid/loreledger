@@ -54,6 +54,7 @@ Frontend/.env*
 # =========================
 Backend/node_modules/
 Backend/.env
+Backend/tests/
 
 # =========================
 # Optional: coverage
