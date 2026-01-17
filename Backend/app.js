@@ -9,8 +9,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(ratelimiter)
 
-
-app.use("/api",require("./routes/health_route"));
+const routes = require("./routes/index")
+app.use("/api",routes);
 
 const errorhandler = require("./middlewares/errorhandler")
 app.use(errorhandler);
