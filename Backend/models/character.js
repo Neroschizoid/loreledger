@@ -8,6 +8,11 @@ const characteschema=mongoose.Schema(
         ref:"Story",
         required: true,
         },
+    ownerID:{
+        type:mongoose.Schema.ObjectId,
+        ref:"User",
+        required: true,
+        },
     },
   { timestamps: true }
 )
