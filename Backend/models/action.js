@@ -8,6 +8,11 @@ const actionschema=mongoose.Schema(
     ref: "Character",
     required: true,
   },
+  storyId:{
+          type:mongoose.Schema.ObjectId,
+          ref:"Story",
+          required: true,
+          }
 },
   { timestamps: true }
 )

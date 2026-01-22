@@ -5,4 +5,5 @@ const {getCharacter,postCharacter} = require("../controller/character_controller
 
 Router.route("/").get(getCharacter).post(postCharacter);
 
+
 module.exports=Router;
