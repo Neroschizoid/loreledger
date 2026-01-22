@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const USER_ROLES = {
-  ADMIN: "admin",
-  CHARACTER: "character"
+  AUTHOR: "AUTHOR",
+  CHARACTER: "CHARACTER"
 };
 const userschema = new mongoose.Schema(
     {
@@ -31,5 +32,21 @@ const userschema = new mongoose.Schema(
     },
   { timestamps: true }
 );
+
+userschema.pre("save", async function () {
+  //we dont use arrow function cause they dont have this
+  if (!this.isModified("password")) {
+    return ;
+  }
+
+  const saltRounds = 10;
+  this.password = await bcrypt.hash(this.password, saltRounds);
+
+});
+
+userschema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
 
 module.exports = mongoose.model("User",userschema);
