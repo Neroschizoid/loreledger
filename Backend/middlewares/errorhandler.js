@@ -6,6 +6,12 @@ const errorhandler = (err, req, res, next) => {
   let statusCode = 500;
   let message = "Internal Server Error";
   let errors = [];
+  if (err.code === 11000) {
+    return res.status(409).json({
+      success: false,
+      message: "Resource already exists"
+    });
+  }
 
   // Known / intentional errors
   if (err instanceof ApiError) {

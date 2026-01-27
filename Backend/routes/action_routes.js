@@ -1,9 +1,14 @@
 const express = require('express');
-const Router = express.Router();
-const {getAction,postAction} = require("../controller/actions_controller")
+const Router = express.Router({ mergeParams: true });
+const {getActions,postAction,updateAction} = require("../controller/actions_controller")
+const authMiddleware=require("../middlewares/authmiddleware")
+const allowRoles=require("../middlewares/rolemiddleware")
 
-Router.route("/actions").post(postAction);
-Router.route("/characters/:characterId/actions").get(getAction);
+Router.use(authMiddleware)
+
+Router.route("/actions").get(getActions).post(allowRoles("AUTHOR","CHARACTER"),postAction);
 
 
+Router.route("/character/:characterId/actions").get(allowRoles("AUTHOR"),getActions);
+Router.route("/actions/:actionId").put(allowRoles("AUTHOR"),updateAction);
 module.exports=Router;

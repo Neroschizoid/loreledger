@@ -8,13 +8,26 @@ const characteschema=mongoose.Schema(
         ref:"Story",
         required: true,
         },
-    ownerID:{
+    ownerId:{
         type:mongoose.Schema.ObjectId,
         ref:"User",
         required: true,
         },
+    isAuthorCreated: {
+  type: Boolean,
+  required: true
+}
     },
   { timestamps: true }
+)
+
+characteschema.index(
+    { storyId: 1, ownerId: 1 },
+  { unique: true,
+    partialFilterExpression: {
+      isAuthorCreated: false
+    }
+   }
 )
 
 module.exports=mongoose.model("Character",characteschema);

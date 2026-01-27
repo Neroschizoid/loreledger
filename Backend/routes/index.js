@@ -11,7 +11,6 @@ const Router = express.Router();
 Router.use("/health",healthroute);
 Router.use("/users",userroutes);
 Router.use("/story",storyroutes);
-Router.use(actionroutes);
 Router.use("/auth",authroutes);
 
 module.exports = Router;

@@ -4,9 +4,19 @@ const asyncwrapper= require("../middlewares/asyncwrapper");
 const ApiError = require("../utils/apierror");
 
 
+const getmyinfo= asyncwrapper(async (req,res)=>{
+        const id=req.user.userId;
+        const user = await User.findById(id).select("-password");
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  res.json({ success:true,
+    your_data:user });
+} );
+
 const getUsers = asyncwrapper(async (req,res)=>{
         const users = await User.find();
-        const empty=users==[]?1:0;
+        const empty=users.size>0?1:0;
         res.status(200).json({
             sucess:true,
             data:users,
@@ -34,4 +44,4 @@ const createUser = asyncwrapper(async (req,res)=>{
 
 
 
-module.exports= {getUsers,createUser}
+module.exports= {getUsers,createUser,getmyinfo}

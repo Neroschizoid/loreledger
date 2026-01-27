@@ -1,5 +1,8 @@
 const mongoose=require("mongoose");
-
+const SC_TYPE = {
+  LOCAL:"LOCAL",
+  GLOBAL:"GLOBAL"
+};
 const actionschema=mongoose.Schema(
 {
   content: String,
@@ -12,8 +15,14 @@ const actionschema=mongoose.Schema(
           type:mongoose.Schema.ObjectId,
           ref:"Story",
           required: true,
-          }
+          },
+  scenario:{
+  type:String,
+  enum:Object.values(SC_TYPE),
+  default: SC_TYPE.LOCAL
+}
 },
+
   { timestamps: true }
 )
 
