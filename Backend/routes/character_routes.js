@@ -1,11 +1,10 @@
 const express = require('express');
 const Router = express.Router({ mergeParams: true });
-const {getCharacter,getMyCharacter,postCharacter} = require("../controller/character_controller")
-const authMiddleware=require("../middlewares/authmiddleware")
-const allowRoles=require("../middlewares/rolemiddleware")
+const { getCharacter, getMyCharacter, postCharacter } = require("../controller/character_controller")
+const authMiddleware = require("../middlewares/authmiddleware")
 
 
-Router.route("/").get(getCharacter).post(authMiddleware,allowRoles("AUTHOR","CHARACTER"),postCharacter);
+Router.route("/").get(getCharacter).post(authMiddleware, postCharacter);
 
-Router.route("/me").get(authMiddleware,allowRoles("AUTHOR","CHARACTER"),getMyCharacter)
-module.exports=Router;
+Router.route("/me").get(authMiddleware, getMyCharacter)
+module.exports = Router;

@@ -2,38 +2,32 @@ const mongoose = require("mongoose");
 const Character = require("../models/character")
 const asyncwrapper = require("../middlewares/asyncwrapper");
 const ApiError = require("../utils/apierror");
-const Story=require("../models/story")
+const Story = require("../models/story")
 
 
-const getCharacter = asyncwrapper( async (req,res)=>{
-    const {storyID}=req.params;
-    
-    if(!mongoose.Types.ObjectId.isValid(storyID)){
-        throw new ApiError(400,"Invalid Id");
-    }
-    const data = await Character.find({
-        storyId : storyID,
-    }).populate("storyId","title").populate("ownerId","username");
-    const characters = data.map(c=>({
-        id:c._id,
-        name:c.name,
-        story:c.storyId.title,
-        owner:c.ownerId.username
-    }));
-    const msg=characters.length>0?"Characters are returned":"No characters exist";
-    res.status(200).json({
-        sucess:true,
-        data:characters,
-        message:msg,
-    })
+const getCharacter = asyncwrapper(async (req, res) => {
+  const { storyID } = req.params;
+
+  const data = await Character.find({
+    storyId: storyID,
+  }).populate("storyId", "title").populate("ownerId", "username");
+  const characters = data.map(c => ({
+    id: c._id,
+    name: c.name,
+    story: c.storyId.title,
+    owner: c.ownerId.username
+  }));
+
+  const msg = characters.length > 0 ? "Characters are returned" : "No characters exist";
+  res.status(200).json({
+    sucess: true,
+    data: characters,
+    message: msg,
+  })
 })
 
 const getMyCharacter = asyncwrapper(async (req, res) => {
   const { storyID } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(storyID)) {
-    throw new ApiError(400, "Invalid Story ID");
-  }
 
   const characters = await Character.find({
     storyId: storyID,
@@ -57,40 +51,40 @@ const getMyCharacter = asyncwrapper(async (req, res) => {
 });
 
 
+const postCharacter = asyncwrapper(async (req, res) => {
+  const { storyID } = req.params;
+  const { name } = req.body;
 
-const postCharacter = asyncwrapper( async(req,res)=>{
-    const storyID=req.params.storyID;
-    if (!mongoose.Types.ObjectId.isValid(storyID)) {
-    throw new ApiError(400, "Invalid Story ID");
+  const story = await Story.findById(storyID);
+  if (!story) {
+    throw new ApiError(404, "Story not found");
   }
 
-  const exist=await Character.findOne({
-    storyId:storyID,
-    ownerId:req.user.userId 
+  const isAuthor = story.authorId.toString() === req.user.userId;
+
+  if (!isAuthor) {
+    const exist = await Character.findOne({
+      storyId: storyID,
+      ownerId: req.user.userId
+    });
+
+    if (exist) {
+      throw new ApiError(409, "Character already exists for this story");
+    }
+  }
+
+  const character = await Character.create({
+    name,
+    storyId: storyID,
+    ownerId: req.user.userId,
+    isAuthorCreated: isAuthor
   });
-  console.log(exist);
 
-    const {name}=req.body;
-    const story=await Story.findById(storyID);
-    if(!story){
-        throw new ApiError(404,"No such story exist");
-    }
+  res.status(201).json({
+    success: true,
+    character
+  });
+});
 
-    if(!name){
-        throw new ApiError(400,"No nameis provided");
-    }
 
-    const character = await Character.create({
-        name:name,
-        storyId:storyID,
-        ownerId:req.user.userId,
-        isAuthorCreated: req.user.role === "AUTHOR"
-    })
-    console.log("character was created :",character);
-    res.status(201).json({
-        sucess:true,
-        character
-    })
-})
-
-module.exports={getCharacter,getMyCharacter,postCharacter}
+module.exports = { getCharacter, getMyCharacter, postCharacter }

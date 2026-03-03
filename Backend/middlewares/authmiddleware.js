@@ -15,8 +15,7 @@ const authMiddleware = (req, res, next) => {
 
     // Attach identity to request
     req.user = {
-      userId: decoded.userId,
-      role: decoded.role
+      userId: decoded.userId
     };
 
     next();

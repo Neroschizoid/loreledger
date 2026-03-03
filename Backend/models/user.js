@@ -5,8 +5,8 @@ const USER_ROLES = {
   CHARACTER: "CHARACTER"
 };
 const userschema = new mongoose.Schema(
-    {
-    username:{
+  {
+    username: {
       type: String,
       required: true,
       unique: true
@@ -19,28 +19,22 @@ const userschema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
-      select: false
-    },
-
-    role: {
-      type: String,
-      enum: Object.values(USER_ROLES),
-      default: USER_ROLES.CHARACTER
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
     },
 
     isActive: {
       type: Boolean,
       default: true
     },
-    },
+  },
   { timestamps: true }
 );
 
 userschema.pre("save", async function () {
   //we dont use arrow function cause they dont have this
   if (!this.isModified("password")) {
-    return ;
+    return;
   }
 
   const saltRounds = 10;
@@ -53,4 +47,4 @@ userschema.methods.comparePassword = async function (candidatePassword) {
 };
 
 
-module.exports = mongoose.model("User",userschema);
+module.exports = mongoose.model("User", userschema);

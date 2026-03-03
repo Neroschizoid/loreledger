@@ -9,7 +9,7 @@ const validate = schema => (req, res, next) => {
     });
     next();
   } catch (err) {
-    next(new ApiError(400, "Invalid request data", err.errors));
+    next(err);
   }
 };
 

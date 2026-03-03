@@ -5,57 +5,52 @@ const User = require("../models/user");
 const generateToken = require("../utils/jwt");
 
 
-const register = asyncwrapper( async(req,res)=>{
-    const {username,email,password} = req.body;
-    if (!email || !password || !username) {
-    throw new ApiError(400, "Name,Email and password required");
-  }
-  const exists = await User.findOne({ $or: [
-      { email: email},
+const register = asyncwrapper(async (req, res) => {
+  const { username, email, password } = req.body;
+
+  const exists = await User.findOne({
+    $or: [
+      { email: email },
       { username: username }
-    ]});
-  if(exists){
+    ]
+  });
+  if (exists) {
     throw new ApiError(409, "User already exists");
   }
-  await User.create({username,email,password});
+  await User.create({ username, email, password });
   res.status(201).json({
-     success: true,
+    success: true,
     message: "User registered"
   })
 
 })
 
-const login = asyncwrapper( async(req,res)=>{
-    const { identifier, password } = req.body;
+const login = asyncwrapper(async (req, res) => {
+  const { identifier, password } = req.body;
 
-  const user = await User.findOne({ 
+  const user = await User.findOne({
     $or: [
       { email: identifier },
       { username: identifier }
-    ] }).select("+password");
+    ]
+  }).select("+password");
 
-  if (!user) {
+  if (!user || !(await user.comparePassword(password))) {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  const isMatch = await user.comparePassword(password);
 
-  if (!isMatch) {
-    throw new ApiError(401, "Invalid credentials");
-  }
-
-    const token = generateToken({
-    userId: user._id,
-    role: user.role || "user"
+  const token = generateToken({
+    userId: user._id
   });
 
 
 
   res.status(200).json({
-    success: true,token,
+    success: true, token,
     message: "Login successful"
   })
-} )
+})
 
 
-module.exports={register,login};
+module.exports = { register, login };

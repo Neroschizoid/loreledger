@@ -1,11 +1,8 @@
-const ApiError = require("../utils/apierror")
+const ApiError = require("../utils/apierror");
+const { ZodError } = require("zod");
 
-
-
-const errorhandler = (err, req, res, next) => {
-  let statusCode = 500;
-  let message = "Internal Server Error";
-  let errors = [];
+const errorHandler = (err, req, res, next) => {
+  // 🔁 Duplicate key (Mongo)
   if (err.code === 11000) {
     return res.status(409).json({
       success: false,
@@ -13,22 +10,30 @@ const errorhandler = (err, req, res, next) => {
     });
   }
 
-  // Known / intentional errors
+  // 🔁 Zod validation errors
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      success: false,
+      message: err.issues
+        .map(e => `${e.path.join(".")}: ${e.message}`)
+        .join(", ")
+    });
+  }
+
+  // Defaults
+  let statusCode = 500;
+  let message = "Internal Server Error";
+  let errors = [];
+
+  // 🔁 Known operational errors
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
-    errors = err.errors;
+    errors = err.errors || [];
+  } else {
+    // 🔥 Log only unexpected errors
+    console.error(err);
   }
-
-  // Optional: validation library errors (future-ready)
-  else if (err.name === "ZodError") {
-    statusCode = 400;
-    message = "Validation failed";
-    errors = err.errors;
-  }
-
-  // Log full error internally
-  console.error(err);
 
   res.status(statusCode).json({
     success: false,
@@ -37,4 +42,4 @@ const errorhandler = (err, req, res, next) => {
   });
 };
 
-module.exports=errorhandler;
+module.exports = errorHandler;
