@@ -14,6 +14,11 @@ const getCharacter = asyncwrapper(async (req, res) => {
   const characters = data.map(c => ({
     id: c._id,
     name: c.name,
+    race: c.race,
+    gender: c.gender,
+    age: c.age,
+    role: c.role,
+    personalities: c.personalities,
     story: c.storyId.title,
     owner: c.ownerId.username
   }));
@@ -41,6 +46,11 @@ const getMyCharacter = asyncwrapper(async (req, res) => {
     data: characters.map(c => ({
       id: c._id,
       name: c.name,
+      race: c.race,
+      gender: c.gender,
+      age: c.age,
+      role: c.role,
+      personalities: c.personalities,
       story: c.storyId.title,
       owner: c.ownerId.username
     })),
@@ -53,7 +63,11 @@ const getMyCharacter = asyncwrapper(async (req, res) => {
 
 const postCharacter = asyncwrapper(async (req, res) => {
   const { storyID } = req.params;
-  const { name } = req.body;
+  const { name, race, gender, age, role, personalities } = req.body;
+
+  if (!name || !race || !gender || !age) {
+    throw new ApiError(400, "Name, race, gender, and age are required.");
+  }
 
   const story = await Story.findById(storyID);
   if (!story) {
@@ -73,12 +87,22 @@ const postCharacter = asyncwrapper(async (req, res) => {
     }
   }
 
-  const character = await Character.create({
+  const characterData = {
     name,
+    race,
+    gender,
+    age,
     storyId: storyID,
     ownerId: req.user.userId,
     isAuthorCreated: isAuthor
-  });
+  };
+
+  if (isAuthor) {
+    if (role) characterData.role = role;
+    if (personalities) characterData.personalities = personalities;
+  }
+
+  const character = await Character.create(characterData);
 
   res.status(201).json({
     success: true,
@@ -86,5 +110,29 @@ const postCharacter = asyncwrapper(async (req, res) => {
   });
 });
 
+const updateCharacter = asyncwrapper(async (req, res) => {
+  const { storyID, characterId } = req.params;
+  const { role, personalities } = req.body;
 
-module.exports = { getCharacter, getMyCharacter, postCharacter }
+  const story = await Story.findById(storyID);
+  if (!story || story.authorId.toString() !== req.user.userId) {
+    throw new ApiError(403, "Only the author can update character roles and personalities.");
+  }
+
+  const character = await Character.findById(characterId);
+  if (!character || character.storyId.toString() !== storyID) {
+    throw new ApiError(404, "Character not found or mismatch");
+  }
+
+  if (role) character.role = role;
+  if (personalities) character.personalities = personalities;
+
+  await character.save();
+
+  res.status(200).json({
+    success: true,
+    character
+  });
+});
+
+module.exports = { getCharacter, getMyCharacter, postCharacter, updateCharacter }

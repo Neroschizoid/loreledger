@@ -1,6 +1,6 @@
 const express = require('express');
 const Router = express.Router({ mergeParams: true });
-const { getActions, postAction, updateAction, requestGlobalStatus, getGlobalRequests, resolveGlobalRequest } = require("../controller/actions_controller")
+const { getActions, postAction, updateAction, requestGlobalStatus, getGlobalRequests, resolveGlobalRequest, toggleScenario, deleteAction } = require("../controller/actions_controller")
 const authMiddleware = require("../middlewares/authmiddleware")
 
 Router.use(authMiddleware)
@@ -12,5 +12,9 @@ Router.route("/requests").get(getGlobalRequests);
 Router.route("/requests/:requestId").put(resolveGlobalRequest);
 
 Router.route("/character/:characterId/actions").get(getActions);
-Router.route("/actions/:actionId").put(updateAction);
+Router.route("/actions/:actionId")
+    .put(updateAction)
+    .delete(deleteAction);
+Router.route("/actions/:actionId/scenario").put(toggleScenario);
+
 module.exports = Router;

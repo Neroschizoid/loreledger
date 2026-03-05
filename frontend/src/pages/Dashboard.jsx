@@ -8,6 +8,7 @@ const Dashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [stories, setStories] = useState([]);
+    const [myCharacters, setMyCharacters] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
@@ -18,17 +19,26 @@ const Dashboard = () => {
     // Join Story Form State
     const [joinStoryId, setJoinStoryId] = useState(null);
     const [charName, setCharName] = useState('');
+    const [charRace, setCharRace] = useState('');
+    const [charGender, setCharGender] = useState('');
+    const [charAge, setCharAge] = useState('');
 
     useEffect(() => {
-        fetchStories();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
 
-    const fetchStories = async () => {
+    const fetchData = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/story');
-            setStories(res.data.data);
+            const [storiesRes, charRes] = await Promise.all([
+                axios.get('http://localhost:5000/api/story'),
+                axios.get('http://localhost:5000/api/users/me/characters')
+            ]);
+            setStories(storiesRes.data.data);
+            setMyCharacters(charRes.data.data || []);
         } catch (err) {
-            console.error('Failed to fetch stories', err);
+            console.error('Failed to fetch data', err);
         } finally {
             setLoading(false);
         }
@@ -46,7 +56,7 @@ const Dashboard = () => {
             setShowModal(false);
             setTitle('');
             setDescription('');
-            fetchStories();
+            fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to create story');
         }
@@ -55,9 +65,17 @@ const Dashboard = () => {
     const handleJoinStory = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`http://localhost:5000/api/story/${joinStoryId}/characters`, { name: charName });
+            await axios.post(`http://localhost:5000/api/story/${joinStoryId}/characters`, {
+                name: charName,
+                race: charRace,
+                gender: charGender,
+                age: Number(charAge)
+            });
             setJoinStoryId(null);
             setCharName('');
+            setCharRace('');
+            setCharGender('');
+            setCharAge('');
             navigate(`/story/${joinStoryId}`);
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to join story. You might already have a character.');
@@ -66,6 +84,10 @@ const Dashboard = () => {
 
     const navigateToStory = (id) => {
         navigate(`/story/${id}`);
+    };
+
+    const hasCharacterInStory = (storyId) => {
+        return myCharacters.some(c => c.storyId?._id === storyId || c.storyId === storyId);
     };
 
     return (
@@ -134,12 +156,15 @@ const Dashboard = () => {
                                                 <p className="story-desc">{story.description}</p>
                                                 <div className="story-card-actions">
                                                     <div className="character-actions">
-                                                        <button className="secondary-btn flex-1" onClick={() => navigateToStory(story._id)}>
-                                                            Enter
-                                                        </button>
-                                                        <button className="primary-btn outline flex-1" onClick={() => setJoinStoryId(story._id)}>
-                                                            Join as New
-                                                        </button>
+                                                        {hasCharacterInStory(story._id) ? (
+                                                            <button className="secondary-btn full-width" onClick={() => navigateToStory(story._id)}>
+                                                                Enter Tale
+                                                            </button>
+                                                        ) : (
+                                                            <button className="primary-btn outline full-width" onClick={() => setJoinStoryId(story._id)}>
+                                                                Join as New
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -184,6 +209,18 @@ const Dashboard = () => {
                             <div className="input-group">
                                 <label>Character Name</label>
                                 <input required value={charName} onChange={e => setCharName(e.target.value)} placeholder="Name your alter ego..." />
+                            </div>
+                            <div className="input-group" style={{ marginTop: '1rem' }}>
+                                <label>Race</label>
+                                <input required value={charRace} onChange={e => setCharRace(e.target.value)} placeholder="Elf, Human, Orc..." />
+                            </div>
+                            <div className="input-group" style={{ marginTop: '1rem' }}>
+                                <label>Gender</label>
+                                <input required value={charGender} onChange={e => setCharGender(e.target.value)} placeholder="Male, Female, Non-binary..." />
+                            </div>
+                            <div className="input-group" style={{ marginTop: '1rem' }}>
+                                <label>Age</label>
+                                <input required type="number" min="1" value={charAge} onChange={e => setCharAge(e.target.value)} placeholder="Age in years..." />
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="text-btn" onClick={() => setJoinStoryId(null)}>Cancel</button>
