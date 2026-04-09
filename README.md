@@ -2,7 +2,7 @@
 
 ## Description
 Lore Ledger is a collaborative storytelling platform that allows authors and players to create, manage, and interact with stories, characters, and actions in real time. It features a dynamic console where participants can chat, post actions, request global visibility for actions, and manage character traits.
-
+something
 ## Tech Stack
 - **Backend**: Node.js, Express, MongoDB (Mongoose)
 - **Frontend**: React (Vite), JavaScript, Lucide React icons, Socket.io client
